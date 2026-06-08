@@ -23,6 +23,9 @@ def read_fasta(path):
         else:
             current_seq.append(line)
 
+    if current_name:
+        records[current_name] = "".join(current_seq)
+
     return records
 
 
@@ -34,9 +37,10 @@ def gc_percent(sequence):
 def main():
     records = read_fasta("example.fa")
 
-    for name, sequence in records:
+    for name, sequence in records.items():
         print(name, len(sequence), gc_percent(sequence))
 
 
 if __name__ == "__main__":
     main()
+
