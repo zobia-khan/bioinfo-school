@@ -1,0 +1,3 @@
+##gff-version 3
+chrTrap	week2	CDS	13	33	.	+	0	ID=cds_alpha;Name=alpha_orf
+chrTrap	week2	CDS	82	102	.	+	0	ID=cds_beta;Name=beta_orf

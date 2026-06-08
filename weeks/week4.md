@@ -1,6 +1,6 @@
 # Week 4 — How agents talk to the world: tools, commands, MCP
 
-**Dates.** Monday 15 June – Friday 19 June 2026
+**Dates.** Monday 15 June – Friday 19 June 2026  
 **Live session.** **Friday 19.6 · 12:00–12:30** — drop-in Q&A and on-ramp to in-person week (Europe/Prague)
 
 **Goal.** Understand the three modes by which an agent uses tools (writing code, running shell commands, calling structured MCP servers). Add reproducibility scaffolding. Set up the in-person week.

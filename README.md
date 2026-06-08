@@ -1,4 +1,4 @@
-# AI-Enhanced Bioinformatics — MUNI Summer School 2026
+# AI-Enhanced Bioinformatics - MUNI Summer School 2026
 
 A four-week online prep course followed by a one-week in-person course on agentic development for bioinformaticians and life-science students. The prep teaches enough about LLMs, agentic IDEs, bio foundation models, and the agent–tool ecosystem that students arrive in Brno ready to *build*, not to be lectured at.
 
@@ -24,9 +24,9 @@ All Q&A slots are **30 minutes**, drop-in, no prepared talk. Bring questions, br
 
 Three principles run through every week:
 
-1. **Build alongside the agent, not under it.** Every exercise produces a real artifact — a script, a notebook, a small repo — that ends up in version control. Nothing is throwaway.
+1. **Build alongside the agent, not under it.** Every exercise produces a real artifact - a script, a notebook, a small repo - that ends up in version control. Nothing is throwaway.
 2. **Biological invariants are the cheapest validator you have.** Agents will produce code that runs, prints plausible output, and is silently wrong. The single most transferable skill in the course is the habit of running domain-aware checks on agent-generated artifacts. This thread is explicit from week 2 onward.
-3. **Lessons accumulate.** Across all four weeks, you keep one [`lessons.md`](lessons.md) in your repo with two kinds of entry each week: **From the materials** (short video/paper notes and reflection exercises) and **Surprises** (concrete LLM and agent moments — tool, prompt, outcome). By week 4 this file is the most valuable artifact of the prep period.
+3. **Lessons accumulate.** Across all four weeks, you keep one [`lessons.md`](lessons.md) in your repo with two kinds of entry each week: **From the materials** (short video/paper notes and reflection exercises) and **Surprises** (concrete LLM and agent moments - tool, prompt, outcome). By week 4 this file is the most valuable artifact of the prep period.
 
 ---
 
@@ -36,7 +36,7 @@ Across the four weeks, you build one cohesive deliverable: an agentic pipeline t
 
 - **Week 1.** First chatbot interactions, GitHub and Slack accounts, this repo forked or cloned, `lessons.md` started.
 - **Week 2.** Agent-generated bioinformatics code in the repo, with versioned commits and real tests against the trap exercise.
-- **Week 3.** Foundation-model evaluation added — a genomic LM benchmarked against the published baseline on Genomic Benchmarks.
+- **Week 3.** Foundation-model evaluation added - a genomic LM benchmarked against the published baseline on Genomic Benchmarks.
 - **Week 4.** Reproducibility scaffolding (`pyproject.toml`, `AGENTS.md`), MCP demo, tagged release. Ready to bring to the in-person week.
 
 Day one of the in-person week, you'll bring this repo plus `lessons.md` plus a list of three things you want to build.
@@ -45,10 +45,10 @@ Day one of the in-person week, you'll bring this repo plus `lessons.md` plus a l
 
 ## Tools and platforms
 
-- **IDE:** [Antigravity](https://antigravity.google) (free for individuals and students). [Cursor](https://cursor.com) and [Claude Code](https://www.anthropic.com/claude-code) mentioned as alternatives.
+- **IDE:** [Antigravity](https://antigravity.google) (free for individuals and students). You can use [Cursor](https://cursor.com) and/or [Claude Code](https://www.anthropic.com/claude-code) if you are experienced with them.
 - **Notebooks:** [Google Colab](https://colab.research.google.com) for compute-heavy exercises (free tier sufficient for everything in the course).
-- **Version control:** [GitHub](https://github.com). Everything ends up there.
-- **Cohort chat:** [Slack](https://slack.com). Create an account in week 1; day-to-day questions, links, and logistics go there (workspace invite in the kick-off email).
+- **Version control and storage:** [GitHub](https://github.com). Everything ends up there.
+- **Cohort chat:** *Slack*. Create an account in week 1 (see email); day-to-day questions, links, and logistics go there (workspace invite in the kick-off email).
 - **Compute constraints assumed:** Colab free tier (T4 when available, CPU otherwise). All exercises sized to fit.
 
 ---
@@ -57,9 +57,9 @@ Day one of the in-person week, you'll bring this repo plus `lessons.md` plus a l
 
 Watching is not learning. For each video, stop every ~20 minutes and add a line under that week's **From the materials** section in [`lessons.md`](lessons.md): *"what's the one thing I'd want to test from what I just heard?"* For each paper, the same: *"what claim would I most want to verify on my own data?"*
 
-LLM and agent surprises go under **Surprises** in the same file — with enough detail to be useful later (tool, prompt, what came back).
+LLM and agent surprises go under **Surprises** in the same file - with enough detail to be useful later (tool, prompt, what came back).
 
-A short ungraded Google Form quiz per week (~5 application-style questions, answers revealed afterward) gives a soft accountability signal without creating evaluation overhead. Quizzes are open-everything; questions are designed so an LLM alone can't answer them — they require integration with your own context.
+A short ungraded Google Form quiz per week (~5 application-style questions, answers revealed afterward) gives a soft accountability signal without creating evaluation overhead. Quizzes are open-everything; questions are designed so an LLM alone can't answer them - they require integration with your own context.
 
 ---
 
@@ -68,7 +68,7 @@ A short ungraded Google Form quiz per week (~5 application-style questions, answ
 Three things, that's it:
 
 1. A working repo (this one, forked or cloned) with weekly commits.
-2. [`lessons.md`](lessons.md) — both subsections each week filled in as you go (**From the materials** + **Surprises**).
+2. [`lessons.md`](lessons.md) - both subsections each week filled in as you go (**From the materials** + **Surprises**).
 3. A one-paragraph reflection at the end of week 4: *"What would I trust an agent to do in my research, and what would I not?"*
 
 Anyone who can answer that reflection concretely after four weeks has gotten what the prep was meant to deliver.
@@ -91,19 +91,27 @@ The in-person week shapes the prep. **Day one in person: pair up, exchange repos
 │   ├── week2.md         # Agentic IDEs on bioinformatics tasks
 │   ├── week3.md         # Bio foundation models as tools
 │   └── week4.md         # Tools, commands, MCP
+├── exercises/
+│   └── week2/
+│       ├── broken_script.py
+│       ├── example.fa
+│       └── trap/
+│           ├── genome.fa
+│           ├── annotations.gff3
+│           └── README.md
+├── onsite/              # in-person build week (placeholder schedule)
 ├── lessons.md           # prep log (From the materials + Surprises); template included
-├── exercises/           # populated as you go (week 2 trap exercise, etc.)
 └── LICENSE
 ```
 
-The `exercises/` directory and starter assets (synthetic genome, GFF, etc.) will appear before each cohort starts. Until then, prompts and specifications live in the weekly markdowns.
+The `exercises/` directory contains small starter assets for the hands-on weeks. Students add their own scripts, notebooks, results, and mini-project files as they go.
 
 ---
 
 ## Contact
 
 - **Day-to-day:** cohort Slack workspace (invite in the kick-off email)
-- **General contact:** Mai Hoa Magnus — `+420 775 853 057` — `magnus@czs.muni.cz`
+- **General contact:** Mai Hoa Magnus - `+420 775 853 057` - `magnus@czs.muni.cz`
 
 Issues with the repo or course materials: open a GitHub issue against this repository.
 

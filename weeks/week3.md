@@ -1,6 +1,6 @@
 # Week 3 — Bio foundation models as tools
 
-**Dates.** Monday 8 June – Friday 12 June 2026
+**Dates.** Monday 8 June – Friday 12 June 2026  
 **Live sessions (Europe/Prague).**
 
 - **Tuesday 9.6 · 11:00–14:00** — Stefan — *Interpretability: Translating AI Outputs Back into Human Knowledge* (2h lecture + 1h Q&A)

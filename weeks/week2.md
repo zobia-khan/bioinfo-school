@@ -1,6 +1,6 @@
 # Week 2 — Agentic IDEs on bioinformatics tasks
 
-**Dates.** Monday 1 June – Friday 5 June 2026
+**Dates.** Monday 1 June – Friday 5 June 2026  
 **Live sessions (Europe/Prague).**
 
 - **Tuesday 2.6 · 11:00–14:00** — Stefan — *Feature Engineering: Translating Scientific Intuition into Numbers* (2h lecture + 1h Q&A)
@@ -18,19 +18,32 @@
 
 ### Setup and Git foundations (~1.5h)
 
-1. Install [Antigravity](https://antigravity.google). Sign in.
-2. Clone the starter repo into the IDE.
-3. Then ruthlessly practical Git: `clone`, `add`, `commit`, `push`, branches, basic merge conflicts, `.gitignore`.
+1. Install [Antigravity](https://antigravity.google). Sign in before starting the guided exercises.
+2. Make sure `git` and `python3` work from a terminal. If you use the Biopython path in the trap exercise, install it in your environment with `python3 -m pip install biopython`.
+3. Clone this course repo into Antigravity and open the repository root, not just one file.
+4. Before writing code, find the mode switch. Antigravity 2 opens much more like a full agent by default; you need to know how to switch between the normal VS Code-like editor view and full Agent mode.
+5. Then ruthlessly practical Git: `clone`, `add`, `commit`, `push`, branches, basic merge conflicts, `.gitignore`.
 
 The framing matters: **you're about to have an agent generate hundreds of lines of code per session; without Git, you can't tell what changed, can't undo, and can't share.**
 
 If Git already feels native to you, skim and move on. If it doesn't, this is the most important hour of the week. We are about to put a fast, confident, occasionally wrong intern at the keyboard. Git is the safety net.
 
+### Antigravity modes: editor vs agent (~15 min)
+
+Antigravity 2 can feel like "agent first" rather than "editor first." Treat the mode switch as part of the exercise, not a UI detail.
+
+- **VS Code-like editor mode:** use this when you want to inspect files yourself, make a small manual edit, run one terminal command, read an error traceback, or accept/reject a single inline suggestion.
+- **Full Agent mode:** use this when you want the agent to plan, inspect multiple files, write or modify code, run commands, and iterate toward a goal.
+
+For the first exercise, deliberately switch out of Agent mode into the editor-like mode, open `broken_script.py`, run it yourself, read the traceback, and use inline edits for the smallest possible fix. For the later exercises, deliberately switch into Agent mode and watch what it changes before you commit.
+
+The habit to build: **choose the level of autonomy before you prompt.** If you only need a one-line edit, don't start a full agent run. If you need the tool to inspect files, write code, run it, and debug, Agent mode is the right place.
+
 ### Guided exercises (~3h)
 
 Four small tasks, escalating in agent autonomy.
 
-1. **Tab completion and inline edits.** Open the broken Python script in the starter repo (`exercises/week2/broken_script.py`). Use Antigravity inline edits (or Cursor/Claude Code equivalents) to fix small issues one at a time. Feel the tightest loop.
+1. **Editor mode, tab completion, and inline edits.** In the VS Code-like editor mode, open the broken Python script (`exercises/week2/broken_script.py`). It reads `example.fa` from the same directory. Run it yourself — it will crash. Use Antigravity inline edits (or Cursor/Claude Code equivalents) to fix each issue one at a time. Feel the tightest feedback loop.
 2. **Chat with codebase context.** Ask the agent to explain what the script does, find where a function is used, suggest a refactor. Understand `@`-references and how context windows work.
 3. **Agent mode on a real task.** Give it a genuine bioinformatics task — *"write a script that takes this VCF and outputs allele frequencies per chromosome"* or *"parse this GFF and report the longest CDS per gene."* Watch what it does. Commit the result.
 4. **The trap exercise** (next section). The most important exercise of the week. Do not skip.
@@ -39,7 +52,7 @@ Four small tasks, escalating in agent autonomy.
 
 The trap is a coordinate-system mismatch between **GFF3 (1-based, inclusive)** and **Python slicing (0-based, exclusive end)**. Agents fail it constantly. The failure is silently visible only to someone who knows what a CDS is supposed to look like.
 
-**Setup files** (provided in the starter repo, under `exercises/week2/trap/`):
+**Setup files** (provided in this repo, under `exercises/week2/trap/`):
 
 - `genome.fa` — tiny synthetic genome, ~160 nt, two hand-placed ORFs
 - `annotations.gff3` — two CDS entries, designed so that *correct* extraction (`seq[start-1:end]`) produces ORFs starting with **ATG** and ending in stop codons
