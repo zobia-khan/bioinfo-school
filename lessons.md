@@ -70,7 +70,7 @@ Add an entry whenever an LLM or agent catches you off guard. Include enough deta
 
 #### From the materials
 
-<!-- Jumper lecture / AlphaFold3 paper notes -->
+<!-- Jumper lecture / CARBON reading notes -->
 
 #### Surprises
 

@@ -90,15 +90,23 @@ The in-person week shapes the prep. **Day one in person: pair up, exchange repos
 │   ├── week1.md         # What an LLM actually is
 │   ├── week2.md         # Agentic IDEs on bioinformatics tasks
 │   ├── week3.md         # Bio foundation models as tools
-│   └── week4.md         # Tools, commands, MCP
+│   ├── week4.md         # Tools, commands, MCP
+│   └── cheatsheets/
+│       └── bio-fm.md    # Week 3 model map
 ├── exercises/
-│   └── week2/
-│       ├── broken_script.py
-│       ├── example.fa
-│       └── trap/
-│           ├── genome.fa
-│           ├── annotations.gff3
-│           └── README.md
+│   ├── week2/
+│   │   ├── broken_script.py
+│   │   ├── example.fa
+│   │   └── trap/
+│   │       ├── genome.fa
+│   │       ├── annotations.gff3
+│   │       └── README.md
+│   └── week3/
+│       ├── README.md
+│       ├── fetch_proteins.py
+│       ├── protein_accessions.tsv
+│       ├── proteins.fasta
+│       └── results.md
 ├── onsite/              # in-person build week (placeholder schedule)
 ├── lessons.md           # prep log (From the materials + Surprises); template included
 └── LICENSE
