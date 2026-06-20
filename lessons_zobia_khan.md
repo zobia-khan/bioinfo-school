@@ -90,3 +90,41 @@ Distribution Sanity Checks: Plot global distributions (histograms, box plots) fo
 
 Stress-Testing Edge Cases: Sample a small fraction of the data, but heavily over-index on known biological edge cases (e.g., genes with overlapping exons, exceptionally short transcripts, or sequences peppered with 'N' bases) to see how the agent's logic handles exceptions.
 
+
+## Week 3
+
+### From the materials
+
+**Jumper Nobel Lecture (AlphaFold):** The key insight I want to test: pLDDT is not a generic confidence score — it is a predicted per-residue accuracy relative to an idealised structure. A high pLDDT region doesn't mean that region is biologically ordered in the cell; it means the model is sure about its geometry. Disordered regions (signal peptides, IDRs) reliably score below 50. I want to check this on a known IDP (intrinsically disordered protein) to see whether the score correctly tracks experimental disorder data.
+
+**CARBON tech report:** CARBON presents task-specific benchmarks but all within its own evaluation suite. The claim I'd most want to verify on my own data: do the CARBON embeddings outperform ESM-2 embeddings for family classification when the test proteins are genuinely out-of-distribution (different species or synthetic sequences)? The in-distribution benchmarks look strong, but they can mask brittleness.
+
+**Interpretability lecture (Stefan):** A clean cluster in a UMAP plot is not proof of biological mechanism — it proves the model learned something that correlates with the family label. The same cluster could reflect sequence length bias, amino acid composition, or training data coverage rather than true functional similarity. One thing I'd test first: replace protein embeddings with random vectors of the same dimensionality and see whether UMAP can still produce "clusters" by chance with only 45 points. That sets the baseline for what structured separation actually means.
+
+
+---
+
+### Surprises
+
+**2026-06-20 · Antigravity agent + ESM-2 notebook (B_protein_embeddings_esm2_output.ipynb)**
+
+
+What happened: (45 sequences, 320-dim CLS embeddings, UMAP shape 45×2), identified the five protein families from the TSV, and produced a factual write-up that correctly described which families clustered and why kinases were spread — all without running any code itself. It also embedded the saved UMAP plot. Impressive for structured document extraction, but it could not check whether the UMAP axes were meaningful or whether a different random seed would have changed the topology.
+
+---
+
+## Week 4
+
+### From the materials
+
+**Tim Berglund — Agent Skills vs MCP (~10 min):** The key distinction: a *skill* is a bundle of instructions and scripts that lives inside the agent's own context and gets executed in its environment; an *MCP tool* is a typed, callable function exposed over a protocol, where the agent does not own the implementation. Skills are better for stable conventions you keep repeating (e.g., "always use `uv` and Phred-33 quality thresholds"). MCP tools are better for live data sources, external services, or anything where the implementation should be maintained independently (e.g., a database query against Ensembl or a UniProt lookup). The overlap is real — anything simple enough can be either — but the question to ask is: *"does the logic belong to the agent, or to a service?"*
+
+---
+
+### Surprises
+
+**2026-06-20 · Antigravity agent — AGENTS.md and repo summary**
+
+Asked the agent: *"Summarise the repo."* After `AGENTS.md` was committed it correctly led with the Python/uv constraint, flagged the Phred-33 convention, listed the files it must not commit, and explicitly mentioned the validation checks. Before `AGENTS.md` existed, the same prompt produced a generic directory listing with no domain constraints at all. The difference was immediate and required no change to the prompt itself.
+
+Takeaway: `AGENTS.md` is genuinely load-bearing. A 20-line conventions file changes agent behaviour more reliably than a long system prompt, because it lives in version control and applies to every new conversation automatically.

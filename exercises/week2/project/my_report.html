@@ -1,0 +1,2523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FASTQ Quality Control Report - test.fastq</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --card-border: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --primary: #8b5cf6;
+            --primary-light: #a78bfa;
+            --success: #10b981;
+            --success-bg: rgba(16, 185, 129, 0.1);
+            --warning: #f59e0b;
+            --warning-bg: rgba(245, 158, 11, 0.1);
+            --danger: #ef4444;
+            --danger-bg: rgba(239, 68, 68, 0.1);
+            --accent-teal: #14b8a6;
+            --accent-pink: #ec4899;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        /* Header block */
+        header {
+            background: linear-gradient(135deg, #1e1b4b 0%, #1e293b 100%);
+            border: 1px solid var(--card-border);
+            border-radius: 1.25rem;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+
+        .header-title h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.25rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #a78bfa, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .header-title p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            padding: 0.75rem 1.25rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-PASS { background-color: var(--success); box-shadow: 0 0 10px var(--success); }
+        .status-WARN { background-color: var(--warning); box-shadow: 0 0 10px var(--warning); }
+        .status-FAIL { background-color: var(--danger); box-shadow: 0 0 10px var(--danger); }
+
+        /* Tabs and Navigation */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            background: rgba(30, 41, 59, 0.5);
+            padding: 0.35rem;
+            border-radius: 0.75rem;
+            border: 1px solid var(--card-border);
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 0.75rem 1.5rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: var(--text-primary);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Dashboard Overview Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 1rem;
+            padding: 1.75rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary), var(--accent-teal));
+        }
+
+        .stat-title {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* Main panels and Layouts */
+        .panel {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .panel-header {
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-title h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.35rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .panel-title p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Chart container */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 450px;
+        }
+
+        /* Tables */
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 0.75rem;
+            border: 1px solid var(--card-border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background-color: rgba(15, 23, 42, 0.6);
+            color: var(--text-primary);
+            padding: 1rem 1.25rem;
+            font-weight: 600;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        td {
+            padding: 1rem 1.25rem;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background-color: rgba(255, 255, 255, 0.02);
+            color: var(--text-primary);
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+
+        .status-pill-PASS { background-color: var(--success-bg); color: var(--success); }
+        .status-pill-WARN { background-color: var(--warning-bg); color: var(--warning); }
+        .status-pill-FAIL { background-color: var(--danger-bg); color: var(--danger); }
+
+        /* Custom UI cards for specific values */
+        .overrepresented-seq {
+            font-family: monospace;
+            background: #0f172a;
+            padding: 0.4rem 0.6rem;
+            border-radius: 0.25rem;
+            color: var(--accent-pink);
+            font-size: 0.85rem;
+            word-break: break-all;
+        }
+
+        /* Responsive styling */
+        @media(max-width: 768px) {
+            body { padding: 1rem; }
+            header { padding: 1.5rem; }
+            .chart-container { height: 350px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Dashboard Header -->
+        <header>
+            <div class="header-title">
+                <h1>FASTQ Quality Control</h1>
+                <p>File: test.fastq</p>
+            </div>
+            <div>
+                <div class="header-badge">
+                    <span>Overall Quality:</span>
+                    <span class="status-dot status-WARN"></span>
+                    <span>WARN</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('overview')">Overview</button>
+            <button class="tab-btn" onclick="switchTab('base-quality')">Per-Base Quality</button>
+            <button class="tab-btn" onclick="switchTab('seq-quality')">Per-Seq Quality</button>
+            <button class="tab-btn" onclick="switchTab('gc-content')">GC Distribution</button>
+            <button class="tab-btn" onclick="switchTab('n-content')">N-Content & Length</button>
+        </div>
+
+        <!-- OVERVIEW TAB -->
+        <div id="overview" class="tab-content active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-title">Total Reads</div>
+                    <div class="stat-value">1,000</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Total Bases</div>
+                    <div class="stat-value">141,000</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Avg Read Length</div>
+                    <div class="stat-value">141.0 bp</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Overall GC</div>
+                    <div class="stat-value">46.07%</div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <h2>QC Status Summary</h2>
+                        <p>Module outcomes based on standard thresholds</p>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>QC Assessment Module</th>
+                                <th>Status</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Per-Base Quality Scores</td>
+                                <td>
+                                    <span class="status-pill status-pill-WARN">
+                                        WARN
+                                    </span>
+                                </td>
+                                <td>Lowest median Phred score along read is 23</td>
+                            </tr>
+                            <tr>
+                                <td>Per-Sequence Quality Scores</td>
+                                <td>
+                                    <span class="status-pill status-pill-PASS">
+                                        PASS
+                                    </span>
+                                </td>
+                                <td>Average quality score per read is 27.71</td>
+                            </tr>
+                            <tr>
+                                <td>N-Content per Base Position</td>
+                                <td>
+                                    <span class="status-pill status-pill-WARN">
+                                        WARN
+                                    </span>
+                                </td>
+                                <td>Maximum N-content at any cycle is 3.41%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Overrepresented Sequences panel -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <h2>Overrepresented Sequences</h2>
+                        <p>Sequences (first 30bp) matching more than 0.5% of total reads (often adapters or low diversity)</p>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Sequence Prefix (First 30bp)</th>
+                                <th>Read Count</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            
+        <tr>
+            <td colspan="3" style="text-align: center; color: #94a3b8;">No overrepresented sequences found (above 0.5% threshold)</td>
+        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- PER-BASE QUALITY TAB -->
+        <div id="base-quality" class="tab-content">
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <h2>Per-Base Quality Scores</h2>
+                        <p>Distribution of Phred quality scores ($Q$) at each position/cycle. Higher is better (Q &gt; 30 represents 99.9% accuracy).</p>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="baseQualChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- PER-SEQUENCE QUALITY TAB -->
+        <div id="seq-quality" class="tab-content">
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <h2>Per-Sequence Mean Quality Scores</h2>
+                        <p>Frequency of reads with specific average quality scores.</p>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="seqQualChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- GC DISTRIBUTION TAB -->
+        <div id="gc-content" class="tab-content">
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <h2>GC Content Distribution</h2>
+                        <p>Percentage GC content of reads compared to a normal distribution.</p>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="gcChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- N-CONTENT & LENGTH TAB -->
+        <div id="n-content" class="tab-content">
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <h2>Ambiguous Base (N) Content per Position</h2>
+                        <p>Percentage of N bases called at each cycle position.</p>
+                    </div>
+                </div>
+                <div class="chart-container" style="height: 300px; margin-bottom: 2rem;">
+                    <canvas id="nContentChart"></canvas>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <h2>Sequence Length Distribution</h2>
+                        <p>Length of reads in the library.</p>
+                    </div>
+                </div>
+                <div class="chart-container" style="height: 300px;">
+                    <canvas id="lengthChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inject data for charts -->
+    <script>
+        const qcData = {
+  "filename": "test.fastq",
+  "total_reads": 1000,
+  "total_bases": 141000,
+  "min_len": 100,
+  "max_len": 150,
+  "avg_len": 141.0,
+  "overall_gc": 46.07,
+  "avg_read_qual": 27.71,
+  "lowest_median": 23,
+  "max_n_pct": 3.4146,
+  "statuses": {
+    "base_quality": "WARN",
+    "seq_quality": "PASS",
+    "n_content": "WARN"
+  },
+  "distributions": {
+    "gc": [
+      {
+        "gc": 25,
+        "count": 1
+      },
+      {
+        "gc": 26,
+        "count": 1
+      },
+      {
+        "gc": 27,
+        "count": 3
+      },
+      {
+        "gc": 28,
+        "count": 1
+      },
+      {
+        "gc": 29,
+        "count": 5
+      },
+      {
+        "gc": 30,
+        "count": 3
+      },
+      {
+        "gc": 31,
+        "count": 9
+      },
+      {
+        "gc": 32,
+        "count": 10
+      },
+      {
+        "gc": 33,
+        "count": 10
+      },
+      {
+        "gc": 34,
+        "count": 14
+      },
+      {
+        "gc": 35,
+        "count": 23
+      },
+      {
+        "gc": 36,
+        "count": 15
+      },
+      {
+        "gc": 37,
+        "count": 31
+      },
+      {
+        "gc": 38,
+        "count": 27
+      },
+      {
+        "gc": 39,
+        "count": 43
+      },
+      {
+        "gc": 40,
+        "count": 23
+      },
+      {
+        "gc": 41,
+        "count": 55
+      },
+      {
+        "gc": 42,
+        "count": 24
+      },
+      {
+        "gc": 43,
+        "count": 65
+      },
+      {
+        "gc": 44,
+        "count": 44
+      },
+      {
+        "gc": 45,
+        "count": 59
+      },
+      {
+        "gc": 46,
+        "count": 54
+      },
+      {
+        "gc": 47,
+        "count": 59
+      },
+      {
+        "gc": 48,
+        "count": 44
+      },
+      {
+        "gc": 49,
+        "count": 83
+      },
+      {
+        "gc": 50,
+        "count": 33
+      },
+      {
+        "gc": 51,
+        "count": 63
+      },
+      {
+        "gc": 52,
+        "count": 20
+      },
+      {
+        "gc": 53,
+        "count": 57
+      },
+      {
+        "gc": 54,
+        "count": 17
+      },
+      {
+        "gc": 55,
+        "count": 37
+      },
+      {
+        "gc": 56,
+        "count": 15
+      },
+      {
+        "gc": 57,
+        "count": 17
+      },
+      {
+        "gc": 58,
+        "count": 1
+      },
+      {
+        "gc": 59,
+        "count": 8
+      },
+      {
+        "gc": 60,
+        "count": 1
+      },
+      {
+        "gc": 61,
+        "count": 4
+      },
+      {
+        "gc": 62,
+        "count": 1
+      },
+      {
+        "gc": 69,
+        "count": 1
+      },
+      {
+        "gc": 71,
+        "count": 4
+      },
+      {
+        "gc": 72,
+        "count": 2
+      },
+      {
+        "gc": 73,
+        "count": 3
+      },
+      {
+        "gc": 74,
+        "count": 2
+      },
+      {
+        "gc": 75,
+        "count": 1
+      },
+      {
+        "gc": 76,
+        "count": 1
+      },
+      {
+        "gc": 77,
+        "count": 3
+      },
+      {
+        "gc": 79,
+        "count": 1
+      },
+      {
+        "gc": 81,
+        "count": 1
+      },
+      {
+        "gc": 82,
+        "count": 1
+      }
+    ],
+    "read_lengths": [
+      {
+        "length": 100,
+        "count": 180
+      },
+      {
+        "length": 150,
+        "count": 820
+      }
+    ],
+    "mean_quals": [
+      {
+        "qual": 15,
+        "count": 4
+      },
+      {
+        "qual": 16,
+        "count": 88
+      },
+      {
+        "qual": 17,
+        "count": 86
+      },
+      {
+        "qual": 18,
+        "count": 2
+      },
+      {
+        "qual": 24,
+        "count": 98
+      },
+      {
+        "qual": 25,
+        "count": 244
+      },
+      {
+        "qual": 26,
+        "count": 3
+      },
+      {
+        "qual": 27,
+        "count": 23
+      },
+      {
+        "qual": 28,
+        "count": 32
+      },
+      {
+        "qual": 34,
+        "count": 14
+      },
+      {
+        "qual": 35,
+        "count": 396
+      },
+      {
+        "qual": 36,
+        "count": 10
+      }
+    ]
+  },
+  "per_base_stats": [
+    {
+      "position": 1,
+      "mean": 32.7,
+      "p10": 17,
+      "p25": 31,
+      "median": 35,
+      "p75": 39,
+      "p90": 40,
+      "n_pct": 1.8
+    },
+    {
+      "position": 2,
+      "mean": 32.54,
+      "p10": 18,
+      "p25": 31,
+      "median": 35,
+      "p75": 38,
+      "p90": 40,
+      "n_pct": 1.5
+    },
+    {
+      "position": 3,
+      "mean": 32.47,
+      "p10": 17,
+      "p25": 32,
+      "median": 35,
+      "p75": 38,
+      "p90": 40,
+      "n_pct": 1.6
+    },
+    {
+      "position": 4,
+      "mean": 32.44,
+      "p10": 16,
+      "p25": 31,
+      "median": 35,
+      "p75": 38,
+      "p90": 40,
+      "n_pct": 1.5
+    },
+    {
+      "position": 5,
+      "mean": 32.46,
+      "p10": 17,
+      "p25": 31,
+      "median": 35,
+      "p75": 38,
+      "p90": 40,
+      "n_pct": 2.6
+    },
+    {
+      "position": 6,
+      "mean": 32.39,
+      "p10": 17,
+      "p25": 31,
+      "median": 35,
+      "p75": 38,
+      "p90": 40,
+      "n_pct": 2.2
+    },
+    {
+      "position": 7,
+      "mean": 31.99,
+      "p10": 18,
+      "p25": 31,
+      "median": 34,
+      "p75": 37,
+      "p90": 39,
+      "n_pct": 2.3
+    },
+    {
+      "position": 8,
+      "mean": 32.23,
+      "p10": 18,
+      "p25": 31,
+      "median": 35,
+      "p75": 38,
+      "p90": 39,
+      "n_pct": 1.7
+    },
+    {
+      "position": 9,
+      "mean": 31.97,
+      "p10": 17,
+      "p25": 31,
+      "median": 34,
+      "p75": 37,
+      "p90": 39,
+      "n_pct": 2.4
+    },
+    {
+      "position": 10,
+      "mean": 32.11,
+      "p10": 17,
+      "p25": 31,
+      "median": 35,
+      "p75": 38,
+      "p90": 39,
+      "n_pct": 3.3
+    },
+    {
+      "position": 11,
+      "mean": 32.1,
+      "p10": 18,
+      "p25": 31,
+      "median": 35,
+      "p75": 37,
+      "p90": 39,
+      "n_pct": 2.3
+    },
+    {
+      "position": 12,
+      "mean": 32.0,
+      "p10": 17,
+      "p25": 31,
+      "median": 34,
+      "p75": 37,
+      "p90": 39,
+      "n_pct": 1.8
+    },
+    {
+      "position": 13,
+      "mean": 31.74,
+      "p10": 17,
+      "p25": 31,
+      "median": 34,
+      "p75": 37,
+      "p90": 39,
+      "n_pct": 2.4
+    },
+    {
+      "position": 14,
+      "mean": 31.76,
+      "p10": 18,
+      "p25": 31,
+      "median": 34,
+      "p75": 37,
+      "p90": 39,
+      "n_pct": 3.3
+    },
+    {
+      "position": 15,
+      "mean": 31.62,
+      "p10": 17,
+      "p25": 31,
+      "median": 34,
+      "p75": 37,
+      "p90": 39,
+      "n_pct": 2.3
+    },
+    {
+      "position": 16,
+      "mean": 31.66,
+      "p10": 16,
+      "p25": 31,
+      "median": 34,
+      "p75": 37,
+      "p90": 39,
+      "n_pct": 2.1
+    },
+    {
+      "position": 17,
+      "mean": 31.74,
+      "p10": 18,
+      "p25": 31,
+      "median": 34,
+      "p75": 37,
+      "p90": 39,
+      "n_pct": 2.8
+    },
+    {
+      "position": 18,
+      "mean": 31.44,
+      "p10": 17,
+      "p25": 31,
+      "median": 34,
+      "p75": 37,
+      "p90": 39,
+      "n_pct": 2.6
+    },
+    {
+      "position": 19,
+      "mean": 31.36,
+      "p10": 18,
+      "p25": 30,
+      "median": 34,
+      "p75": 37,
+      "p90": 38,
+      "n_pct": 2.1
+    },
+    {
+      "position": 20,
+      "mean": 31.17,
+      "p10": 18,
+      "p25": 30,
+      "median": 33,
+      "p75": 36,
+      "p90": 38,
+      "n_pct": 1.4
+    },
+    {
+      "position": 21,
+      "mean": 31.39,
+      "p10": 19,
+      "p25": 30,
+      "median": 33,
+      "p75": 36,
+      "p90": 38,
+      "n_pct": 1.6
+    },
+    {
+      "position": 22,
+      "mean": 31.27,
+      "p10": 18,
+      "p25": 30,
+      "median": 33,
+      "p75": 36,
+      "p90": 38,
+      "n_pct": 1.2
+    },
+    {
+      "position": 23,
+      "mean": 31.15,
+      "p10": 16,
+      "p25": 30,
+      "median": 33,
+      "p75": 36,
+      "p90": 38,
+      "n_pct": 2.2
+    },
+    {
+      "position": 24,
+      "mean": 31.35,
+      "p10": 18,
+      "p25": 30,
+      "median": 33,
+      "p75": 36,
+      "p90": 38,
+      "n_pct": 1.9
+    },
+    {
+      "position": 25,
+      "mean": 30.92,
+      "p10": 18,
+      "p25": 30,
+      "median": 33,
+      "p75": 36,
+      "p90": 38,
+      "n_pct": 1.8
+    },
+    {
+      "position": 26,
+      "mean": 30.92,
+      "p10": 17,
+      "p25": 30,
+      "median": 33,
+      "p75": 36,
+      "p90": 38,
+      "n_pct": 1.5
+    },
+    {
+      "position": 27,
+      "mean": 30.86,
+      "p10": 17,
+      "p25": 30,
+      "median": 33,
+      "p75": 36,
+      "p90": 37,
+      "n_pct": 2.1
+    },
+    {
+      "position": 28,
+      "mean": 30.73,
+      "p10": 17,
+      "p25": 30,
+      "median": 33,
+      "p75": 36,
+      "p90": 38,
+      "n_pct": 1.9
+    },
+    {
+      "position": 29,
+      "mean": 30.75,
+      "p10": 16,
+      "p25": 30,
+      "median": 33,
+      "p75": 36,
+      "p90": 38,
+      "n_pct": 2.0
+    },
+    {
+      "position": 30,
+      "mean": 30.4,
+      "p10": 17,
+      "p25": 29,
+      "median": 32,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 1.9
+    },
+    {
+      "position": 31,
+      "mean": 30.43,
+      "p10": 18,
+      "p25": 29,
+      "median": 32,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 1.6
+    },
+    {
+      "position": 32,
+      "mean": 30.37,
+      "p10": 18,
+      "p25": 29,
+      "median": 32,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 3.1
+    },
+    {
+      "position": 33,
+      "mean": 30.5,
+      "p10": 18,
+      "p25": 29,
+      "median": 32,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 1.6
+    },
+    {
+      "position": 34,
+      "mean": 30.52,
+      "p10": 19,
+      "p25": 29,
+      "median": 32,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 2.4
+    },
+    {
+      "position": 35,
+      "mean": 30.5,
+      "p10": 18,
+      "p25": 29,
+      "median": 32,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 2.3
+    },
+    {
+      "position": 36,
+      "mean": 29.88,
+      "p10": 16,
+      "p25": 28,
+      "median": 32,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 2.3
+    },
+    {
+      "position": 37,
+      "mean": 30.0,
+      "p10": 18,
+      "p25": 28,
+      "median": 32,
+      "p75": 34,
+      "p90": 37,
+      "n_pct": 2.6
+    },
+    {
+      "position": 38,
+      "mean": 30.21,
+      "p10": 17,
+      "p25": 28,
+      "median": 32,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 2.3
+    },
+    {
+      "position": 39,
+      "mean": 30.04,
+      "p10": 18,
+      "p25": 28,
+      "median": 32,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 2.1
+    },
+    {
+      "position": 40,
+      "mean": 29.96,
+      "p10": 17,
+      "p25": 28,
+      "median": 32,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 2.5
+    },
+    {
+      "position": 41,
+      "mean": 29.98,
+      "p10": 17,
+      "p25": 28,
+      "median": 32,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 2.8
+    },
+    {
+      "position": 42,
+      "mean": 29.69,
+      "p10": 18,
+      "p25": 27,
+      "median": 31,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 1.3
+    },
+    {
+      "position": 43,
+      "mean": 29.62,
+      "p10": 18,
+      "p25": 27,
+      "median": 31,
+      "p75": 34,
+      "p90": 37,
+      "n_pct": 2.0
+    },
+    {
+      "position": 44,
+      "mean": 29.75,
+      "p10": 18,
+      "p25": 27,
+      "median": 31,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 2.4
+    },
+    {
+      "position": 45,
+      "mean": 29.75,
+      "p10": 17,
+      "p25": 27,
+      "median": 31,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 1.9
+    },
+    {
+      "position": 46,
+      "mean": 29.69,
+      "p10": 18,
+      "p25": 27,
+      "median": 31,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 2.0
+    },
+    {
+      "position": 47,
+      "mean": 29.64,
+      "p10": 18,
+      "p25": 27,
+      "median": 31,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 1.3
+    },
+    {
+      "position": 48,
+      "mean": 29.24,
+      "p10": 17,
+      "p25": 26,
+      "median": 30,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 2.5
+    },
+    {
+      "position": 49,
+      "mean": 29.47,
+      "p10": 18,
+      "p25": 26,
+      "median": 31,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 2.4
+    },
+    {
+      "position": 50,
+      "mean": 29.16,
+      "p10": 17,
+      "p25": 26,
+      "median": 31,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 2.4
+    },
+    {
+      "position": 51,
+      "mean": 29.31,
+      "p10": 18,
+      "p25": 26,
+      "median": 31,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 2.0
+    },
+    {
+      "position": 52,
+      "mean": 29.38,
+      "p10": 17,
+      "p25": 26,
+      "median": 31,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 1.5
+    },
+    {
+      "position": 53,
+      "mean": 28.91,
+      "p10": 18,
+      "p25": 25,
+      "median": 30,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 1.2
+    },
+    {
+      "position": 54,
+      "mean": 28.85,
+      "p10": 17,
+      "p25": 25,
+      "median": 30,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 1.7
+    },
+    {
+      "position": 55,
+      "mean": 29.11,
+      "p10": 17,
+      "p25": 26,
+      "median": 30,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 1.6
+    },
+    {
+      "position": 56,
+      "mean": 29.02,
+      "p10": 17,
+      "p25": 25,
+      "median": 30,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 2.3
+    },
+    {
+      "position": 57,
+      "mean": 28.87,
+      "p10": 17,
+      "p25": 25,
+      "median": 30,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 2.3
+    },
+    {
+      "position": 58,
+      "mean": 28.77,
+      "p10": 17,
+      "p25": 25,
+      "median": 30,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 1.3
+    },
+    {
+      "position": 59,
+      "mean": 28.55,
+      "p10": 17,
+      "p25": 24,
+      "median": 30,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 2.5
+    },
+    {
+      "position": 60,
+      "mean": 28.51,
+      "p10": 17,
+      "p25": 25,
+      "median": 30,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 1.9
+    },
+    {
+      "position": 61,
+      "mean": 28.54,
+      "p10": 18,
+      "p25": 24,
+      "median": 30,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 1.5
+    },
+    {
+      "position": 62,
+      "mean": 28.48,
+      "p10": 18,
+      "p25": 24,
+      "median": 30,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 2.3
+    },
+    {
+      "position": 63,
+      "mean": 28.32,
+      "p10": 16,
+      "p25": 24,
+      "median": 30,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 2.2
+    },
+    {
+      "position": 64,
+      "mean": 28.53,
+      "p10": 18,
+      "p25": 25,
+      "median": 30,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 2.2
+    },
+    {
+      "position": 65,
+      "mean": 28.37,
+      "p10": 17,
+      "p25": 24,
+      "median": 29,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 1.4
+    },
+    {
+      "position": 66,
+      "mean": 28.08,
+      "p10": 18,
+      "p25": 23,
+      "median": 29,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 1.6
+    },
+    {
+      "position": 67,
+      "mean": 28.05,
+      "p10": 17,
+      "p25": 23,
+      "median": 29,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 1.9
+    },
+    {
+      "position": 68,
+      "mean": 28.1,
+      "p10": 18,
+      "p25": 24,
+      "median": 28,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 2.3
+    },
+    {
+      "position": 69,
+      "mean": 28.06,
+      "p10": 18,
+      "p25": 24,
+      "median": 29,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 2.3
+    },
+    {
+      "position": 70,
+      "mean": 28.01,
+      "p10": 17,
+      "p25": 23,
+      "median": 29,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 2.0
+    },
+    {
+      "position": 71,
+      "mean": 27.65,
+      "p10": 17,
+      "p25": 22,
+      "median": 28,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 2.2
+    },
+    {
+      "position": 72,
+      "mean": 27.68,
+      "p10": 17,
+      "p25": 23,
+      "median": 28,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 2.4
+    },
+    {
+      "position": 73,
+      "mean": 27.45,
+      "p10": 17,
+      "p25": 22,
+      "median": 27,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 2.9
+    },
+    {
+      "position": 74,
+      "mean": 27.71,
+      "p10": 18,
+      "p25": 23,
+      "median": 28,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 1.2
+    },
+    {
+      "position": 75,
+      "mean": 27.66,
+      "p10": 17,
+      "p25": 23,
+      "median": 28,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 1.5
+    },
+    {
+      "position": 76,
+      "mean": 27.75,
+      "p10": 18,
+      "p25": 23,
+      "median": 28,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 2.2
+    },
+    {
+      "position": 77,
+      "mean": 27.24,
+      "p10": 17,
+      "p25": 22,
+      "median": 27,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 2.0
+    },
+    {
+      "position": 78,
+      "mean": 27.22,
+      "p10": 16,
+      "p25": 22,
+      "median": 27,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 1.3
+    },
+    {
+      "position": 79,
+      "mean": 27.08,
+      "p10": 16,
+      "p25": 22,
+      "median": 26,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 1.4
+    },
+    {
+      "position": 80,
+      "mean": 27.26,
+      "p10": 17,
+      "p25": 22,
+      "median": 27,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 1.3
+    },
+    {
+      "position": 81,
+      "mean": 27.33,
+      "p10": 17,
+      "p25": 22,
+      "median": 27,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 1.6
+    },
+    {
+      "position": 82,
+      "mean": 26.73,
+      "p10": 17,
+      "p25": 21,
+      "median": 25,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 2.1
+    },
+    {
+      "position": 83,
+      "mean": 26.49,
+      "p10": 16,
+      "p25": 21,
+      "median": 26,
+      "p75": 33,
+      "p90": 38,
+      "n_pct": 1.8
+    },
+    {
+      "position": 84,
+      "mean": 27.05,
+      "p10": 18,
+      "p25": 21,
+      "median": 26,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 2.4
+    },
+    {
+      "position": 85,
+      "mean": 26.88,
+      "p10": 18,
+      "p25": 21,
+      "median": 25,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 1.9
+    },
+    {
+      "position": 86,
+      "mean": 26.82,
+      "p10": 18,
+      "p25": 22,
+      "median": 26,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 1.7
+    },
+    {
+      "position": 87,
+      "mean": 26.79,
+      "p10": 17,
+      "p25": 21,
+      "median": 26,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 3.1
+    },
+    {
+      "position": 88,
+      "mean": 26.63,
+      "p10": 18,
+      "p25": 20,
+      "median": 25,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 2.6
+    },
+    {
+      "position": 89,
+      "mean": 26.45,
+      "p10": 17,
+      "p25": 20,
+      "median": 25,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 2.5
+    },
+    {
+      "position": 90,
+      "mean": 26.64,
+      "p10": 17,
+      "p25": 20,
+      "median": 25,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 2.5
+    },
+    {
+      "position": 91,
+      "mean": 26.65,
+      "p10": 18,
+      "p25": 21,
+      "median": 25,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 1.8
+    },
+    {
+      "position": 92,
+      "mean": 26.57,
+      "p10": 18,
+      "p25": 21,
+      "median": 25,
+      "p75": 34,
+      "p90": 37,
+      "n_pct": 2.2
+    },
+    {
+      "position": 93,
+      "mean": 26.52,
+      "p10": 18,
+      "p25": 20,
+      "median": 25,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 2.6
+    },
+    {
+      "position": 94,
+      "mean": 26.06,
+      "p10": 17,
+      "p25": 19,
+      "median": 24,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 2.0
+    },
+    {
+      "position": 95,
+      "mean": 26.29,
+      "p10": 17,
+      "p25": 20,
+      "median": 24,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 2.0
+    },
+    {
+      "position": 96,
+      "mean": 26.31,
+      "p10": 16,
+      "p25": 20,
+      "median": 24,
+      "p75": 35,
+      "p90": 39,
+      "n_pct": 1.9
+    },
+    {
+      "position": 97,
+      "mean": 26.31,
+      "p10": 17,
+      "p25": 20,
+      "median": 24,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 2.1
+    },
+    {
+      "position": 98,
+      "mean": 25.96,
+      "p10": 17,
+      "p25": 20,
+      "median": 24,
+      "p75": 33,
+      "p90": 37,
+      "n_pct": 1.6
+    },
+    {
+      "position": 99,
+      "mean": 26.22,
+      "p10": 17,
+      "p25": 20,
+      "median": 24,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 1.7
+    },
+    {
+      "position": 100,
+      "mean": 25.69,
+      "p10": 16,
+      "p25": 19,
+      "median": 23,
+      "p75": 34,
+      "p90": 38,
+      "n_pct": 1.9
+    },
+    {
+      "position": 101,
+      "mean": 27.82,
+      "p10": 17,
+      "p25": 20,
+      "median": 30,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 1.8293
+    },
+    {
+      "position": 102,
+      "mean": 27.85,
+      "p10": 17,
+      "p25": 20,
+      "median": 30,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 1.5854
+    },
+    {
+      "position": 103,
+      "mean": 27.81,
+      "p10": 17,
+      "p25": 20,
+      "median": 30,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 1.4634
+    },
+    {
+      "position": 104,
+      "mean": 27.82,
+      "p10": 18,
+      "p25": 20,
+      "median": 30,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 2.8049
+    },
+    {
+      "position": 105,
+      "mean": 27.41,
+      "p10": 17,
+      "p25": 20,
+      "median": 30,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 3.4146
+    },
+    {
+      "position": 106,
+      "mean": 27.57,
+      "p10": 17,
+      "p25": 20,
+      "median": 30,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 1.5854
+    },
+    {
+      "position": 107,
+      "mean": 27.54,
+      "p10": 17,
+      "p25": 20,
+      "median": 30,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 1.2195
+    },
+    {
+      "position": 108,
+      "mean": 27.59,
+      "p10": 17,
+      "p25": 20,
+      "median": 30,
+      "p75": 35,
+      "p90": 39,
+      "n_pct": 0.9756
+    },
+    {
+      "position": 109,
+      "mean": 27.51,
+      "p10": 16,
+      "p25": 20,
+      "median": 30,
+      "p75": 35,
+      "p90": 39,
+      "n_pct": 2.1951
+    },
+    {
+      "position": 110,
+      "mean": 27.31,
+      "p10": 16,
+      "p25": 19,
+      "median": 30,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 2.0732
+    },
+    {
+      "position": 111,
+      "mean": 27.09,
+      "p10": 16,
+      "p25": 19,
+      "median": 30,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 2.0732
+    },
+    {
+      "position": 112,
+      "mean": 27.18,
+      "p10": 16,
+      "p25": 19,
+      "median": 30,
+      "p75": 35,
+      "p90": 39,
+      "n_pct": 1.7073
+    },
+    {
+      "position": 113,
+      "mean": 27.18,
+      "p10": 16,
+      "p25": 19,
+      "median": 30,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 1.3415
+    },
+    {
+      "position": 114,
+      "mean": 27.19,
+      "p10": 16,
+      "p25": 19,
+      "median": 30,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 1.8293
+    },
+    {
+      "position": 115,
+      "mean": 27.37,
+      "p10": 16,
+      "p25": 19,
+      "median": 30,
+      "p75": 36,
+      "p90": 39,
+      "n_pct": 1.2195
+    },
+    {
+      "position": 116,
+      "mean": 27.19,
+      "p10": 16,
+      "p25": 19,
+      "median": 30,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 1.3415
+    },
+    {
+      "position": 117,
+      "mean": 27.03,
+      "p10": 14,
+      "p25": 18,
+      "median": 30,
+      "p75": 36,
+      "p90": 39,
+      "n_pct": 1.8293
+    },
+    {
+      "position": 118,
+      "mean": 26.68,
+      "p10": 15,
+      "p25": 17,
+      "median": 30,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 2.6829
+    },
+    {
+      "position": 119,
+      "mean": 26.89,
+      "p10": 15,
+      "p25": 18,
+      "median": 30,
+      "p75": 35,
+      "p90": 39,
+      "n_pct": 0.8537
+    },
+    {
+      "position": 120,
+      "mean": 26.74,
+      "p10": 15,
+      "p25": 18,
+      "median": 30,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 2.439
+    },
+    {
+      "position": 121,
+      "mean": 26.9,
+      "p10": 15,
+      "p25": 18,
+      "median": 30,
+      "p75": 35,
+      "p90": 39,
+      "n_pct": 2.0732
+    },
+    {
+      "position": 122,
+      "mean": 26.64,
+      "p10": 15,
+      "p25": 17,
+      "median": 30,
+      "p75": 36,
+      "p90": 38,
+      "n_pct": 1.9512
+    },
+    {
+      "position": 123,
+      "mean": 26.36,
+      "p10": 14,
+      "p25": 17,
+      "median": 30,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 1.7073
+    },
+    {
+      "position": 124,
+      "mean": 26.36,
+      "p10": 14,
+      "p25": 17,
+      "median": 30,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 1.9512
+    },
+    {
+      "position": 125,
+      "mean": 26.45,
+      "p10": 14,
+      "p25": 17,
+      "median": 30,
+      "p75": 35,
+      "p90": 39,
+      "n_pct": 2.0732
+    },
+    {
+      "position": 126,
+      "mean": 26.27,
+      "p10": 14,
+      "p25": 17,
+      "median": 30,
+      "p75": 35,
+      "p90": 39,
+      "n_pct": 1.5854
+    },
+    {
+      "position": 127,
+      "mean": 26.26,
+      "p10": 13,
+      "p25": 16,
+      "median": 30,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 2.1951
+    },
+    {
+      "position": 128,
+      "mean": 25.89,
+      "p10": 13,
+      "p25": 16,
+      "median": 30,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 2.1951
+    },
+    {
+      "position": 129,
+      "mean": 25.7,
+      "p10": 13,
+      "p25": 16,
+      "median": 30,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 1.3415
+    },
+    {
+      "position": 130,
+      "mean": 26.03,
+      "p10": 13,
+      "p25": 16,
+      "median": 30,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 2.3171
+    },
+    {
+      "position": 131,
+      "mean": 25.98,
+      "p10": 12,
+      "p25": 16,
+      "median": 30,
+      "p75": 35,
+      "p90": 39,
+      "n_pct": 1.5854
+    },
+    {
+      "position": 132,
+      "mean": 25.95,
+      "p10": 13,
+      "p25": 16,
+      "median": 30,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 0.8537
+    },
+    {
+      "position": 133,
+      "mean": 25.97,
+      "p10": 13,
+      "p25": 16,
+      "median": 30,
+      "p75": 35,
+      "p90": 39,
+      "n_pct": 2.1951
+    },
+    {
+      "position": 134,
+      "mean": 25.52,
+      "p10": 11,
+      "p25": 15,
+      "median": 30,
+      "p75": 35,
+      "p90": 39,
+      "n_pct": 1.9512
+    },
+    {
+      "position": 135,
+      "mean": 25.51,
+      "p10": 12,
+      "p25": 15,
+      "median": 30,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 1.8293
+    },
+    {
+      "position": 136,
+      "mean": 25.63,
+      "p10": 12,
+      "p25": 15,
+      "median": 30,
+      "p75": 35,
+      "p90": 39,
+      "n_pct": 1.7073
+    },
+    {
+      "position": 137,
+      "mean": 25.34,
+      "p10": 11,
+      "p25": 15,
+      "median": 30,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 1.4634
+    },
+    {
+      "position": 138,
+      "mean": 25.6,
+      "p10": 12,
+      "p25": 15,
+      "median": 30,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 1.2195
+    },
+    {
+      "position": 139,
+      "mean": 25.67,
+      "p10": 12,
+      "p25": 15,
+      "median": 30,
+      "p75": 35,
+      "p90": 39,
+      "n_pct": 1.4634
+    },
+    {
+      "position": 140,
+      "mean": 25.06,
+      "p10": 11,
+      "p25": 14,
+      "median": 30,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 2.0732
+    },
+    {
+      "position": 141,
+      "mean": 25.14,
+      "p10": 11,
+      "p25": 14,
+      "median": 30,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 0.9756
+    },
+    {
+      "position": 142,
+      "mean": 25.13,
+      "p10": 11,
+      "p25": 14,
+      "median": 30,
+      "p75": 35,
+      "p90": 39,
+      "n_pct": 1.8293
+    },
+    {
+      "position": 143,
+      "mean": 25.09,
+      "p10": 11,
+      "p25": 14,
+      "median": 30,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 1.8293
+    },
+    {
+      "position": 144,
+      "mean": 25.1,
+      "p10": 11,
+      "p25": 14,
+      "median": 30,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 2.6829
+    },
+    {
+      "position": 145,
+      "mean": 25.24,
+      "p10": 10,
+      "p25": 14,
+      "median": 30,
+      "p75": 36,
+      "p90": 39,
+      "n_pct": 2.9268
+    },
+    {
+      "position": 146,
+      "mean": 24.75,
+      "p10": 10,
+      "p25": 13,
+      "median": 30,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 1.9512
+    },
+    {
+      "position": 147,
+      "mean": 24.75,
+      "p10": 10,
+      "p25": 13,
+      "median": 30,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 2.0732
+    },
+    {
+      "position": 148,
+      "mean": 24.67,
+      "p10": 10,
+      "p25": 13,
+      "median": 30,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 1.5854
+    },
+    {
+      "position": 149,
+      "mean": 24.74,
+      "p10": 10,
+      "p25": 13,
+      "median": 30,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 1.4634
+    },
+    {
+      "position": 150,
+      "mean": 24.88,
+      "p10": 10,
+      "p25": 13,
+      "median": 30,
+      "p75": 35,
+      "p90": 38,
+      "n_pct": 1.8293
+    }
+  ],
+  "overrepresented": []
+};
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            const eventBtn = Array.from(document.querySelectorAll('.tab-btn')).find(btn => btn.getAttribute('onclick').includes(tabId));
+            if (eventBtn) eventBtn.classList.add('active');
+            
+            const activeContent = document.getElementById(tabId);
+            if (activeContent) activeContent.classList.add('active');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Configure global Chart defaults for premium aesthetics
+            Chart.defaults.color = '#94a3b8';
+            Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+            Chart.defaults.font.size = 12;
+            Chart.defaults.borderColor = 'rgba(51, 65, 85, 0.4)';
+            
+            const xLabels = qcData.per_base_stats.map(s => s.position);
+            
+            // 1. Per-Base Quality Box Chart (Line-based simulation for simplicity and max compatibility)
+            const ctxQual = document.getElementById('baseQualChart').getContext('2d');
+            new Chart(ctxQual, {
+                type: 'line',
+                data: {
+                    labels: xLabels,
+                    datasets: [
+                        {
+                            label: 'Median Quality',
+                            data: qcData.per_base_stats.map(s => s.median),
+                            borderColor: '#8b5cf6',
+                            backgroundColor: 'rgba(139, 92, 246, 0.2)',
+                            borderWidth: 3,
+                            fill: false,
+                            tension: 0.1,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Mean Quality',
+                            data: qcData.per_base_stats.map(s => s.mean),
+                            borderColor: '#14b8a6',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: false,
+                            tension: 0.1
+                        },
+                        {
+                            label: '25th - 75th Percentile Range',
+                            data: qcData.per_base_stats.map(s => s.p75),
+                            borderColor: 'transparent',
+                            backgroundColor: 'rgba(139, 92, 246, 0.08)',
+                            fill: '+1',
+                            tension: 0.1
+                        },
+                        {
+                            label: '25th Percentile boundary',
+                            data: qcData.per_base_stats.map(s => s.p25),
+                            borderColor: 'transparent',
+                            backgroundColor: 'transparent',
+                            fill: false,
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                filter: function(item, chart) {
+                                    // Filter out helper boundaries for cleaner legend
+                                    return !item.text.includes('boundary');
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 42,
+                            title: {
+                                display: true,
+                                text: 'Quality Score (Phred)'
+                            },
+                            grid: {
+                                color: function(context) {
+                                    if (context.tick.value < 20) return 'rgba(239, 68, 68, 0.15)';
+                                    if (context.tick.value < 28) return 'rgba(245, 158, 11, 0.15)';
+                                    return 'rgba(16, 185, 129, 0.15)';
+                                }
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Position in Read (bp)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 2. Per-Sequence Quality Chart
+            const ctxSeqQual = document.getElementById('seqQualChart').getContext('2d');
+            const meanQualData = qcData.distributions.mean_quals;
+            new Chart(ctxSeqQual, {
+                type: 'bar',
+                data: {
+                    labels: meanQualData.map(d => d.qual),
+                    datasets: [{
+                        label: 'Read Count',
+                        data: meanQualData.map(d => d.count),
+                        backgroundColor: 'rgba(20, 184, 166, 0.6)',
+                        borderColor: '#14b8a6',
+                        borderWidth: 1.5,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Number of Reads' }
+                        },
+                        x: {
+                            title: { display: true, text: 'Mean Quality Score' }
+                        }
+                    }
+                }
+            });
+
+            // 3. GC Content Distribution
+            const ctxGC = document.getElementById('gcChart').getContext('2d');
+            const gcData = qcData.distributions.gc;
+            new Chart(ctxGC, {
+                type: 'line',
+                data: {
+                    labels: gcData.map(d => d.gc),
+                    datasets: [{
+                        label: 'GC Content (%)',
+                        data: gcData.map(d => d.count),
+                        borderColor: '#ec4899',
+                        backgroundColor: 'rgba(236, 72, 153, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        borderWidth: 2.5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Number of Reads' }
+                        },
+                        x: {
+                            title: { display: true, text: 'GC % per Read' }
+                        }
+                    }
+                }
+            });
+
+            // 4. N Content Chart
+            const ctxN = document.getElementById('nContentChart').getContext('2d');
+            new Chart(ctxN, {
+                type: 'line',
+                data: {
+                    labels: xLabels,
+                    datasets: [{
+                        label: 'Percentage N',
+                        data: qcData.per_base_stats.map(s => s.n_pct),
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.05)',
+                        fill: true,
+                        tension: 0.1,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            min: 0,
+                            title: { display: true, text: '% N Called' }
+                        },
+                        x: {
+                            title: { display: true, text: 'Position (bp)' }
+                        }
+                    }
+                }
+            });
+
+            // 5. Sequence Length Distribution
+            const ctxLen = document.getElementById('lengthChart').getContext('2d');
+            const lenData = qcData.distributions.read_lengths;
+            new Chart(ctxLen, {
+                type: 'bar',
+                data: {
+                    labels: lenData.map(d => d.length),
+                    datasets: [{
+                        label: 'Read Count',
+                        data: lenData.map(d => d.count),
+                        backgroundColor: 'rgba(245, 158, 11, 0.6)',
+                        borderColor: '#f59e0b',
+                        borderWidth: 1.5,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Number of Reads' }
+                        },
+                        x: {
+                            title: { display: true, text: 'Read Length (bp)' }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
